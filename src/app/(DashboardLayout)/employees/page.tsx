@@ -1,5 +1,5 @@
 "use client";
-import React, { useContext, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TextField,
@@ -8,157 +8,138 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Badge,
   Tooltip,
   IconButton,
-  Tabs,
-  Tab,
   TableHead,
   TableRow,
   TableCell,
   TableBody,
   Box,
   Typography,
-  Grid,
   Stack,
   InputAdornment,
-  Chip,
+  CircularProgress,
 } from "@mui/material";
 import Link from "next/link";
-import EditIcon from "@mui/icons-material/Edit";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import DeleteIcon from "@mui/icons-material/Delete";
 import {
-  IconEdit,
-  IconEye,
-  IconListDetails,
   IconSearch,
-  IconShoppingBag,
-  IconSortAscending,
   IconTrash,
-  IconTruck,
+  IconEdit,
 } from "@tabler/icons-react";
 import CustomCheckbox from "@/app/components/forms/theme-elements/CustomCheckbox";
+import axios from "axios";
+import AddEmployee from "./AddEmployee";
 
-function InvoiceList() {
-  // const { invoices, deleteInvoice } = useContext(InvoiceContext);
+interface Employee {
+  _id: string;
+  userName: string;
+  name: string;
+  phone: string;
+  gender: string;
+  address: string;
+  dob: string;
+  password: string;
+}
+
+function EmployeeList() {
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("All");
-  const [selectedProducts, setSelectedProducts] = useState<any>([]);
+  const [selectedEmployees, setSelectedEmployees] = useState<any>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [openFormDialog, setOpenFormDialog] = useState(false);
+  const [currentEmployee, setCurrentEmployee] = useState<Employee | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  const tabItem = ["All", "Shipped", "Delivered", "Pending"];
-  const [currentIndex, setCurrentIndex] = useState(0);
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
 
-
-  // Handle status filter change
-  const handleClick = (status: string) => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % tabItem.length);
-    setActiveTab(status);
+  const fetchEmployees = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get("/api/employees");
+      setEmployees(response.data);
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-
-
-  // Filter invoices based on search term
-  // const filteredInvoices = invoices.filter(
-  //   (invoice: { billFrom: string; billTo: string; status: string }) => {
-  //     return (
-  //       (invoice.billFrom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //         invoice.billTo.toLowerCase().includes(searchTerm.toLowerCase())) &&
-  //       (activeTab === "All" || invoice.status === activeTab)
-  //     );
-  //   }
-  // );
-
-
-
-  // Calculate the counts for different statuses
-  // const Shipped = invoices.filter(
-  //   (t: { status: string }) => t.status === "Shipped"
-  // ).length;
-  // const Delivered = invoices.filter(
-  //   (t: { status: string }) => t.status === "Delivered"
-  // ).length;
-  // const Pending = invoices.filter(
-  //   (t: { status: string }) => t.status === "Pending"
-  // ).length;
-
-  // Toggle all checkboxes
   const toggleSelectAll = () => {
     const selectAllValue = !selectAll;
     setSelectAll(selectAllValue);
     if (selectAllValue) {
-      // setSelectedProducts(invoices.map((invoice: { id: any }) => invoice.id));
+      setSelectedEmployees(employees.map((employee: { _id: any }) => employee._id));
     } else {
-      setSelectedProducts([]);
+      setSelectedEmployees([]);
     }
   };
 
-  // Toggle individual product selection
-  const toggleSelectProduct = (productId: any) => {
-    const index = selectedProducts.indexOf(productId);
+  const toggleSelectEmployee = (employeeId: any) => {
+    const index = selectedEmployees.indexOf(employeeId);
     if (index === -1) {
-      setSelectedProducts([...selectedProducts, productId]);
+      setSelectedEmployees([...selectedEmployees, employeeId]);
     } else {
-      setSelectedProducts(
-        selectedProducts.filter((id: any) => id !== productId)
-      );
+      setSelectedEmployees(selectedEmployees.filter((id: any) => id !== employeeId));
     }
   };
 
-  // Handle opening delete confirmation dialog
   const handleDelete = () => {
     setOpenDeleteDialog(true);
   };
 
-  // Handle confirming deletion of selected products
   const handleConfirmDelete = async () => {
-    for (const productId of selectedProducts) {
-      // await deleteInvoice(productId);
+    setDeleting(true);
+    try {
+      for (const employeeId of selectedEmployees) {
+        console.log('Deleting employee with ID:', employeeId);
+        await axios.delete(`/api/employees?id=${employeeId}`);
+      }
+      setSelectedEmployees([]);
+      setSelectAll(false);
+      setOpenDeleteDialog(false);
+      fetchEmployees();
+    } catch (error) {
+      console.error('Error deleting employees:', error);
+    } finally {
+      setDeleting(false);
     }
-    setSelectedProducts([]);
-    setSelectAll(false);
-    setOpenDeleteDialog(false);
   };
 
-  // Handle closing delete confirmation dialog
   const handleCloseDeleteDialog = () => {
     setOpenDeleteDialog(false);
   };
 
+  const handleOpenFormDialog = (employee: Employee | undefined = undefined) => {
+    setCurrentEmployee(employee);
+    setOpenFormDialog(true);
+  };
+
+  const handleCloseFormDialog = () => {
+    setOpenFormDialog(false);
+    setCurrentEmployee(undefined);
+    fetchEmployees();
+  };
+
   return (
     <Box>
-
       <Stack
         mt={3}
-        justifyContent="space-between"
+        justifyContent="end"
         direction={{ xs: "column", sm: "row" }}
         spacing={{ xs: 1, sm: 2, md: 4 }}
       >
-        <TextField
-          id="search"
-          type="text"
-          size="small"
-          variant="outlined"
-          placeholder="Search"
-          value={searchTerm}
-          onChange={(e: any) => setSearchTerm(e.target.value)}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconSearch size={"16"} />
-              </InputAdornment>
-            ),
-          }}
-        />
         <Box display="flex" gap={1}>
           {selectAll && (
             <Button
               variant="outlined"
               color="error"
               onClick={handleDelete}
-              startIcon={<IconTrash width={18} />}
+              startIcon={deleting ? <CircularProgress size={18} /> : <IconTrash width={18} />}
+              disabled={deleting}
             >
               Delete All
             </Button>
@@ -166,135 +147,88 @@ function InvoiceList() {
           <Button
             variant="contained"
             color="primary"
-            component={Link}
-            href="/apps/invoice/create"
+            onClick={() => handleOpenFormDialog()}
           >
-            New Invoice
+            Add Employee
           </Button>
         </Box>
       </Stack>
 
       <Box sx={{ overflowX: "auto" }}>
-        <Table sx={{ whiteSpace: { xs: "nowrap", md: "unset" } }}>
-          <TableHead>
-            <TableRow>
-              <TableCell padding="checkbox">
-                <CustomCheckbox
-                  checked={selectAll}
-                  onChange={toggleSelectAll}
-                />
-              </TableCell>
-              <TableCell>
-                <Typography variant="h6" fontSize="14px">
-                  Id
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="h6" fontSize="14px">
-                  Bill From
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="h6" fontSize="14px">
-                  Bill To
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="h6" fontSize="14px">
-                  Total Cost
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="h6" fontSize="14px">
-                  Status
-                </Typography>
-              </TableCell>
-              <TableCell align="center">
-                <Typography variant="h6" fontSize="14px">
-                  Action
-                </Typography>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {/* {filteredInvoices.map(
-              (invoice: {
-                id: any;
-                billFrom: any;
-                billTo: any;
-                totalCost: any;
-                status: any;
-              }) => (
-                <TableRow key={invoice.id}>
-                  <TableCell padding="checkbox">
-                    <CustomCheckbox
-                      checked={selectedProducts.includes(invoice.id)}
-                      onChange={() => toggleSelectProduct(invoice.id)}
-                    />
+        {loading ? (
+          <Box display="flex" justifyContent="center" mt={3}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Table sx={{ whiteSpace: { xs: "nowrap", md: "unset" } }}>
+            <TableHead>
+              <TableRow>
+                <TableCell>
+                  <Typography variant="h6" fontSize="14px">User Name</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="h6" fontSize="14px">Name</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="h6" fontSize="14px">Phone</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="h6" fontSize="14px">Gender</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="h6" fontSize="14px">Address</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="h6" fontSize="14px">DOB</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="h6" fontSize="14px">Password</Typography>
+                </TableCell>
+                <TableCell align="center">
+                  <Typography variant="h6" fontSize="14px">Action</Typography>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {employees.map((employee: any) => (
+                <TableRow key={employee._id}>
+                  <TableCell>
+                    <Typography variant="h6" fontSize="14px">{employee.userName}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="h6" fontSize="14px">{employee.name}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="h6" fontSize="14px">{employee.phone}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="h6" fontSize="14px">{employee.gender}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="h6" fontSize="14px">{employee.address}</Typography>
                   </TableCell>
                   <TableCell>
                     <Typography variant="h6" fontSize="14px">
-                      {invoice.id}
+                      {new Date(employee.dob).toLocaleDateString('en-US')}
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="h6" fontSize="14px">
-                      {invoice.billFrom}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography fontSize="14px">{invoice.billTo}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography fontSize="14px">{invoice.totalCost}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    {invoice.status === "Shipped" ? (
-                      <Chip
-                        color="primary"
-                        label={invoice.status}
-                        size="small"
-                      />
-                    ) : invoice.status === "Delivered" ? (
-                      <Chip
-                        color="success"
-                        label={invoice.status}
-                        size="small"
-                      />
-                    ) : invoice.status === "Pending" ? (
-                      <Chip
-                        color="warning"
-                        label={invoice.status}
-                        size="small"
-                      />
-                    ) : (
-                      ""
-                    )}
+                    <Typography variant="h6" fontSize="14px">{employee.password}</Typography>
                   </TableCell>
                   <TableCell align="center">
-                    <Tooltip title="Edit Invoice">
+                    <Tooltip title="Edit Employee">
                       <IconButton
-                        color="success"
-                        component={Link}
-                        href={`/apps/invoice/edit/${invoice.billFrom}`}
+                        color="primary"
+                        onClick={() => handleOpenFormDialog(employee)}
                       >
                         <IconEdit width={22} />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="View Invoice">
-                      <IconButton
-                        color="primary"
-                        component={Link}
-                        href={`/apps/invoice/detail/${invoice.billFrom}`}
-                      >
-                        <IconEye width={22} />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete Invoice">
+                    <Tooltip title="Delete Employee">
                       <IconButton
                         color="error"
                         onClick={() => {
-                          setSelectedProducts([invoice.id]);
+                          setSelectedEmployees([employee._id]);
                           handleDelete();
                         }}
                       >
@@ -303,30 +237,28 @@ function InvoiceList() {
                     </Tooltip>
                   </TableCell>
                 </TableRow>
-              )
-            )} */}
-          </TableBody>
-        </Table>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </Box>
       <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
         <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>
-          Are you sure you want to delete selected invoices?
-        </DialogContent>
+        <DialogContent>Are you sure you want to delete selected employees?</DialogContent>
         <DialogActions>
-          <Button variant="contained" onClick={handleCloseDeleteDialog}>
-            Cancel
-          </Button>
-          <Button
-            color="error"
-            variant="outlined"
-            onClick={handleConfirmDelete}
-          >
-            Delete
+          <Button variant="contained" onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button color="error" variant="outlined" onClick={handleConfirmDelete} disabled={deleting}>
+            {deleting ? <CircularProgress size={18} /> : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>
-    </Box >
+      <AddEmployee
+        open={openFormDialog}
+        onClose={handleCloseFormDialog}
+        employee={currentEmployee}
+      />
+    </Box>
   );
 }
-export default InvoiceList;
+
+export default EmployeeList;
