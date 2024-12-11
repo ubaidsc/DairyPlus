@@ -95,7 +95,6 @@ function EmployeeList() {
     setDeleting(true);
     try {
       for (const employeeId of selectedEmployees) {
-        console.log('Deleting employee with ID:', employeeId);
         await axios.delete(`/api/employees?id=${employeeId}`);
       }
       setSelectedEmployees([]);
