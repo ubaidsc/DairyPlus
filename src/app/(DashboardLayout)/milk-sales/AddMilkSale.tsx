@@ -13,6 +13,7 @@ import {
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
+import Autocomplete from '@mui/material/Autocomplete';
 
 const validationSchema = Yup.object({
   employeeId: Yup.string().required('Employee ID is required'),
@@ -43,6 +44,7 @@ interface AddMilkSaleProps {
 
 function AddMilkSale({ open, onClose, milkSale }: AddMilkSaleProps) {
   const [submitting, setSubmitting] = React.useState(false);
+  const [employees, setEmployees] = React.useState<{ label: string, id: string }[]>([]);
 
   const formik = useFormik({
     initialValues: {
@@ -90,21 +92,43 @@ function AddMilkSale({ open, onClose, milkSale }: AddMilkSaleProps) {
     }
   }, [milkSale]);
 
+  React.useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const response = await axios.get('/api/employees');
+        setEmployees(response.data.map((employee: any) => ({ label: employee.name, id: employee._id })));
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+      }
+    };
+    fetchEmployees();
+  }, []);
+
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{milkSale ? 'Update Milk Sale' : 'Add Milk Sale'}</DialogTitle>
       <DialogContent>
         <Box component="form" onSubmit={formik.handleSubmit} mt={2}>
-          <TextField
-            fullWidth
-            id="employeeId"
-            name="employeeId"
-            label="Employee ID"
-            value={formik.values.employeeId}
-            onChange={formik.handleChange}
-            error={formik.touched.employeeId && Boolean(formik.errors.employeeId)}
-            helperText={formik.touched.employeeId && typeof formik.errors.employeeId === 'string' ? formik.errors.employeeId : undefined}
-            margin="dense"
+          <Autocomplete
+            options={employees}
+            getOptionLabel={(option) => option.label}
+            onChange={(event, value) => {
+              formik.setFieldValue('employeeId', value?.id || '');
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                fullWidth
+                id="employeeId"
+                name="employeeId"
+                label="Employee"
+                value={formik.values.employeeId}
+                onChange={formik.handleChange}
+                error={formik.touched.employeeId && Boolean(formik.errors.employeeId)}
+                helperText={formik.touched.employeeId && typeof formik.errors.employeeId === 'string' ? formik.errors.employeeId : undefined}
+                margin="dense"
+              />
+            )}
           />
           <TextField
             fullWidth

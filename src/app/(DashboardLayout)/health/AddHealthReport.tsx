@@ -13,6 +13,7 @@ import {
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
+import Autocomplete from '@mui/material/Autocomplete';
 
 const validationSchema = Yup.object({
   cowId: Yup.string().required('Cow ID is required'),
@@ -43,6 +44,7 @@ interface AddHealthReportProps {
 
 function AddHealthReport({ open, onClose, healthRecord }: AddHealthReportProps) {
   const [submitting, setSubmitting] = React.useState(false);
+  const [cows, setCows] = React.useState<{ label: string, id: string }[]>([]);
 
   const formik = useFormik({
     initialValues: {
@@ -90,12 +92,46 @@ function AddHealthReport({ open, onClose, healthRecord }: AddHealthReportProps) 
     }
   }, [healthRecord]);
 
+  React.useEffect(() => {
+    const fetchCows = async () => {
+      try {
+        const response = await axios.get('/api/cows');
+        setCows(response.data.map((cow: any) => ({ label: cow.cowName, id: cow.cowId })));
+      } catch (error) {
+        console.error('Error fetching cows:', error);
+      }
+    };
+    fetchCows();
+  }, []);
+
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{healthRecord ? 'Update Health Record' : 'Add Health Record'}</DialogTitle>
       <DialogContent>
         <Box component="form" onSubmit={formik.handleSubmit} mt={2}>
-          <TextField
+          <Autocomplete
+            options={cows}
+            getOptionLabel={(option) => option.label}
+            onChange={(event, value) => {
+              formik.setFieldValue('cowId', value?.id || '');
+              formik.setFieldValue('cowName', value?.label || '');
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                fullWidth
+                id="cowName"
+                name="cowName"
+                label="Cow Name"
+                value={formik.values.cowName}
+                onChange={formik.handleChange}
+                error={formik.touched.cowName && Boolean(formik.errors.cowName)}
+                helperText={formik.touched.cowName && typeof formik.errors.cowName === 'string' ? formik.errors.cowName : undefined}
+                margin="dense"
+              />
+            )}
+          />
+          {/* <TextField
             fullWidth
             id="cowId"
             name="cowId"
@@ -105,18 +141,7 @@ function AddHealthReport({ open, onClose, healthRecord }: AddHealthReportProps) 
             error={formik.touched.cowId && Boolean(formik.errors.cowId)}
             helperText={formik.touched.cowId && typeof formik.errors.cowId === 'string' ? formik.errors.cowId : undefined}
             margin="dense"
-          />
-          <TextField
-            fullWidth
-            id="cowName"
-            name="cowName"
-            label="Cow Name"
-            value={formik.values.cowName}
-            onChange={formik.handleChange}
-            error={formik.touched.cowName && Boolean(formik.errors.cowName)}
-            helperText={formik.touched.cowName && typeof formik.errors.cowName === 'string' ? formik.errors.cowName : undefined}
-            margin="dense"
-          />
+          /> */}
           <TextField
             fullWidth
             id="event"

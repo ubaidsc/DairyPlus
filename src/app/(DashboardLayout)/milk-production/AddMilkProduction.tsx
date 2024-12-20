@@ -13,6 +13,7 @@ import {
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
+import Autocomplete from '@mui/material/Autocomplete';
 
 const validationSchema = Yup.object({
   cowname: Yup.string().required('Cow Name is required'),
@@ -42,6 +43,7 @@ interface AddMilkProductionProps {
 
 function AddMilkProduction({ open, onClose, milkProduction }: AddMilkProductionProps) {
   const [submitting, setSubmitting] = React.useState(false);
+  const [cows, setCows] = React.useState<{ label: string, id: string }[]>([]);
 
   const formik = useFormik({
     initialValues: {
@@ -87,21 +89,42 @@ function AddMilkProduction({ open, onClose, milkProduction }: AddMilkProductionP
     }
   }, [milkProduction]);
 
+  React.useEffect(() => {
+    const fetchCows = async () => {
+      try {
+        const response = await axios.get('/api/cows');
+        setCows(response.data.map((cow: any) => ({ label: cow.cowName, id: cow.cowId })));
+      } catch (error) {
+        console.error('Error fetching cows:', error);
+      }
+    };
+    fetchCows();
+  }, []);
+
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{milkProduction ? 'Update Milk Production' : 'Add Milk Production'}</DialogTitle>
       <DialogContent>
         <Box component="form" onSubmit={formik.handleSubmit} mt={2}>
-          <TextField
+          <Autocomplete
+            disablePortal
+            id="cow-select"
+            options={cows}
             fullWidth
-            id="cowname"
-            name="cowname"
-            label="Cow Name"
-            value={formik.values.cowname}
-            onChange={formik.handleChange}
-            error={formik.touched.cowname && Boolean(formik.errors.cowname)}
-            helperText={formik.touched.cowname && typeof formik.errors.cowname === 'string' ? formik.errors.cowname : undefined}
-            margin="dense"
+            getOptionLabel={(option) => option.label}
+            onChange={(event, value) => {
+              formik.setFieldValue('cowname', value?.label || '');
+              formik.setFieldValue('cowid', value?.id || '');
+            }}
+            renderInput={(params) => (
+              <TextField 
+                {...params} 
+                label="Select Cow" 
+                placeholder="Select Cow" 
+                aria-label="Select Cow"
+                margin="dense"
+              />
+            )}
           />
           <TextField
             fullWidth
