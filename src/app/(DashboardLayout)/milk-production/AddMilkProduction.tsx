@@ -23,7 +23,7 @@ const validationSchema = Yup.object({
   date: Yup.date().required('Date is required'),
 });
 
-interface Cow {
+interface MilkProduction {
   _id?: string;
   cowid?: string;
   cowname: string;
@@ -34,13 +34,13 @@ interface Cow {
   date: string;
 }
 
-interface AddCowProps {
+interface AddMilkProductionProps {
   open: boolean;
   onClose: () => void;
-  cow?: Cow;
+  milkProduction?: MilkProduction;
 }
 
-function AddCow({ open, onClose, cow }: AddCowProps) {
+function AddMilkProduction({ open, onClose, milkProduction }: AddMilkProductionProps) {
   const [submitting, setSubmitting] = React.useState(false);
 
   const formik = useFormik({
@@ -57,15 +57,15 @@ function AddCow({ open, onClose, cow }: AddCowProps) {
       setSubmitting(true);
       try {
         console.log('Submitting form data:', values);
-        if (cow) {
-          await axios.put('/api/cows', { id: cow._id, ...values });
+        if (milkProduction) {
+          await axios.put('/api/milk-productions', { id: milkProduction._id, ...values });
         } else {
-          await axios.post('/api/cows', values);
+          await axios.post('/api/milk-productions', values);
         }
         formik.resetForm();
         onClose();
       } catch (error) {
-        console.error('Error saving cow:', error);
+        console.error('Error saving milk production:', error);
       } finally {
         setSubmitting(false);
       }
@@ -73,23 +73,23 @@ function AddCow({ open, onClose, cow }: AddCowProps) {
   });
 
   React.useEffect(() => {
-    if (cow) {
+    if (milkProduction) {
       formik.setValues({
-        cowname: cow.cowname,
-        amMilk: cow.amMilk,
-        noonMilk: cow.noonMilk,
-        pmMilk: cow.pmMilk,
-        totalMilk: cow.totalMilk,
-        date: cow.date,
+        cowname: milkProduction.cowname,
+        amMilk: milkProduction.amMilk,
+        noonMilk: milkProduction.noonMilk,
+        pmMilk: milkProduction.pmMilk,
+        totalMilk: milkProduction.totalMilk,
+        date: milkProduction.date,
       });
     } else {
       formik.resetForm();
     }
-  }, [cow]);
+  }, [milkProduction]);
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>{cow ? 'Update Cow' : 'Add Cow'}</DialogTitle>
+      <DialogTitle>{milkProduction ? 'Update Milk Production' : 'Add Milk Production'}</DialogTitle>
       <DialogContent>
         <Box component="form" onSubmit={formik.handleSubmit} mt={2}>
           <TextField
@@ -169,7 +169,7 @@ function AddCow({ open, onClose, cow }: AddCowProps) {
           <DialogActions>
             <Button color="error" onClick={onClose} disabled={submitting}>Cancel</Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? <CircularProgress size={18} /> : cow ? 'Update' : 'Add'}
+              {submitting ? <CircularProgress size={18} /> : milkProduction ? 'Update' : 'Add'}
             </Button>
           </DialogActions>
         </Box>
@@ -178,4 +178,4 @@ function AddCow({ open, onClose, cow }: AddCowProps) {
   );
 }
 
-export default AddCow;
+export default AddMilkProduction;

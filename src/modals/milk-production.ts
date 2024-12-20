@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const CowSchema = new mongoose.Schema({
+const MilkProductionSchema = new mongoose.Schema({
   cowid: { type: String, required: true, default: () => `COW-${Date.now()}-${Math.floor(Math.random() * 10000)}` },
   cowname: { type: String, required: true },
   amMilk: { type: Number, required: true },
@@ -10,5 +10,5 @@ const CowSchema = new mongoose.Schema({
   date: { type: Date, required: true },
 });
 
-const Cow = mongoose.models.Cow || mongoose.model('Cow', CowSchema);
-export default Cow;
+const MilkProduction = mongoose.models.MilkProduction || mongoose.model('MilkProduction', MilkProductionSchema);
+export default MilkProduction;
