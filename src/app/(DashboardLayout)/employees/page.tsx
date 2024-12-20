@@ -189,7 +189,7 @@ function EmployeeList() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {employees.map((employee: any) => (
+              {employees?.map((employee: any) => (
                 <TableRow key={employee._id}>
                   <TableCell>
                     <Typography variant="h6" fontSize="14px">{employee.userName}</Typography>
