@@ -32,7 +32,7 @@ const Sidebar = () => {
   const onHoverLeave = () => {
     dispatch(hoverSidebar(false));
   };
-
+console.log( 'customizer-------------------------');
   return (
     <>
       {!lgUp ? (

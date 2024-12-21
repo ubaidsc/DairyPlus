@@ -8,11 +8,20 @@ import { useSelector } from '@/store/hooks';
 import { IconPower } from '@tabler/icons-react';
 import { AppState } from '@/store/store';
 import Link from 'next/link';
+import { signOut } from '@/auth';
+import { LogOut } from '@/utils/signOut';
+// import { redirect } from 'next/navigation';
 
 export const Profile = () => {
   const customizer = useSelector((state: AppState) => state.customizer);
   const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up('lg'));
   const hideMenu = lgUp ? customizer.isCollapse && !customizer.isSidebarHover : '';
+  
+  // const handleSignOut = async () => {
+
+  //   await signOut("credentials");
+  //   // redirect('/login');
+  // };
 
   return (
     <Box
@@ -33,8 +42,7 @@ export const Profile = () => {
             <Tooltip title="Logout" placement="top">
               <IconButton
                 color="primary"
-                component={Link}
-                href="/auth/auth1/login"
+                onClick={() => LogOut()}
                 aria-label="logout"
                 size="small"
               >
