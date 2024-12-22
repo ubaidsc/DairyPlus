@@ -7,10 +7,10 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useSelector } from '@/store/hooks';
 import { IconPower } from '@tabler/icons-react';
 import { AppState } from '@/store/store';
-import Link from 'next/link';
-import { signOut } from '@/auth';
 import { LogOut } from '@/utils/signOut';
 // import { redirect } from 'next/navigation';
+import checkUser from '@/utils/checkUser';
+import { useEffect, useState } from 'react';
 
 export const Profile = () => {
   const customizer = useSelector((state: AppState) => state.customizer);
@@ -23,6 +23,16 @@ export const Profile = () => {
   //   // redirect('/login');
   // };
 
+  const [user, setUser] = useState<any>(null); // State to store the user information
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const result = await checkUser();
+      setUser(result);
+    };
+
+    fetchUser();
+  }, []);
   return (
     <Box
       display={'flex'}
@@ -35,8 +45,8 @@ export const Profile = () => {
           <Avatar alt="Remy Sharp" src={"/images/profile/user-1.jpg"} sx={{height: 40, width: 40}} />
 
           <Box>
-            <Typography variant="h6">Mathew</Typography>
-            <Typography variant="caption">Designer</Typography>
+            <Typography variant="h6">{user && user.username ? user.username : " "}</Typography>
+            <Typography variant="caption">{user && user.role ? user.role : " "}</Typography>
           </Box>
           <Box sx={{ ml: 'auto' }}>
             <Tooltip title="Logout" placement="top">

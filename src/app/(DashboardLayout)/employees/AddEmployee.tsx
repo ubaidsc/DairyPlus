@@ -21,7 +21,11 @@ const validationSchema = Yup.object({
   gender: Yup.string().required('Gender is required'),
   address: Yup.string().required('Address is required'),
   dob: Yup.date().required('Date of Birth is required'),
-  password: Yup.string().required('Password is required'),
+  password: Yup.string()
+    .required('Password is required')
+    .min(8, 'Password must be at least 8 characters')
+    .matches(/[0-9]/, 'Password must contain a number')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain a symbol'),
 });
 
 interface Employee {
@@ -130,6 +134,7 @@ function AddEmployee({ open, onClose, employee }: AddEmployeeProps) {
           />
           <TextField
             fullWidth
+            select
             id="gender"
             name="gender"
             label="Gender"
@@ -138,7 +143,15 @@ function AddEmployee({ open, onClose, employee }: AddEmployeeProps) {
             error={formik.touched.gender && Boolean(formik.errors.gender)}
             helperText={formik.touched.gender && typeof formik.errors.gender === 'string' ? formik.errors.gender : undefined}
             margin="dense"
-          />
+            SelectProps={{
+              native: true,
+            }}
+          >
+            <option value="" />
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </TextField>
           <TextField
             fullWidth
             id="address"

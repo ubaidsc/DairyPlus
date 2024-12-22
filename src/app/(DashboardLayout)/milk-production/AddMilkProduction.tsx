@@ -72,7 +72,24 @@ function AddMilkProduction({ open, onClose, milkProduction }: AddMilkProductionP
         setSubmitting(false);
       }
     },
+    validate: (values) => {
+      const errors: any = {};
+      if (values.amMilk + values.noonMilk + values.pmMilk !== values.totalMilk) {
+        errors.totalMilk = 'Total Milk should be the sum of AM, Noon, and PM Milk';
+      }
+      return errors;
+    },
   });
+
+  const handleMilkChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    const numericValue = parseFloat(value);
+    formik.setFieldValue(name, numericValue);
+    const amMilk = name === 'amMilk' ? numericValue : formik.values.amMilk;
+    const noonMilk = name === 'noonMilk' ? numericValue : formik.values.noonMilk;
+    const pmMilk = name === 'pmMilk' ? numericValue : formik.values.pmMilk;
+    formik.setFieldValue('totalMilk', amMilk + noonMilk + pmMilk);
+  };
 
   React.useEffect(() => {
     if (milkProduction) {
@@ -133,7 +150,7 @@ function AddMilkProduction({ open, onClose, milkProduction }: AddMilkProductionP
             label="AM Milk"
             type="number"
             value={formik.values.amMilk}
-            onChange={formik.handleChange}
+            onChange={handleMilkChange}
             error={formik.touched.amMilk && Boolean(formik.errors.amMilk)}
             helperText={formik.touched.amMilk && typeof formik.errors.amMilk === 'string' ? formik.errors.amMilk : undefined}
             margin="dense"
@@ -145,7 +162,7 @@ function AddMilkProduction({ open, onClose, milkProduction }: AddMilkProductionP
             label="Noon Milk"
             type="number"
             value={formik.values.noonMilk}
-            onChange={formik.handleChange}
+            onChange={handleMilkChange}
             error={formik.touched.noonMilk && Boolean(formik.errors.noonMilk)}
             helperText={formik.touched.noonMilk && typeof formik.errors.noonMilk === 'string' ? formik.errors.noonMilk : undefined}
             margin="dense"
@@ -157,7 +174,7 @@ function AddMilkProduction({ open, onClose, milkProduction }: AddMilkProductionP
             label="PM Milk"
             type="number"
             value={formik.values.pmMilk}
-            onChange={formik.handleChange}
+            onChange={handleMilkChange}
             error={formik.touched.pmMilk && Boolean(formik.errors.pmMilk)}
             helperText={formik.touched.pmMilk && typeof formik.errors.pmMilk === 'string' ? formik.errors.pmMilk : undefined}
             margin="dense"
@@ -173,6 +190,7 @@ function AddMilkProduction({ open, onClose, milkProduction }: AddMilkProductionP
             error={formik.touched.totalMilk && Boolean(formik.errors.totalMilk)}
             helperText={formik.touched.totalMilk && typeof formik.errors.totalMilk === 'string' ? formik.errors.totalMilk : undefined}
             margin="dense"
+            disabled
           />
           <TextField
             fullWidth

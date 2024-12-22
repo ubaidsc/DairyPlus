@@ -30,6 +30,17 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
       return;
     }
 
+    if (username.length < 5) {
+      setError("Username must be at least 5 characters long");
+      return;
+    }
+
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setError("Password must be at least 8 characters long and include letters, numbers, and special characters");
+      return;
+    }
+
     const result = await signIn("credentials", {
       redirect: false,
       role,
@@ -54,7 +65,7 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
 
       {subtext}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={{ minWidth: '400px', maxWidth: '400px', margin: '0 auto' }}>
         <Stack>
           <Box sx={{ mb: 2 }}>
             <CustomFormLabel htmlFor="role">Login As</CustomFormLabel>
